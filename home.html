@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom CSS for the segments and divider */
+        .segment {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-bottom: 2px solid transparent; /* Initially no underline */
+        }
+
+        .segment.active {
+            border-bottom-color: #4a90e2; /* Thick underline for active segment */
+            background-color: #e6f0ff; /* Highlight active segment */
+        }
+
+        .divider {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            background-color: #ccc;
+        }
+
+        .inactive-row {
+            background-color: rgba(0, 0, 0, 0.1);
+            cursor: not-allowed; /* Add this line */
+        }
+
+        /* Change cursor to "not-allowed" for buttons in inactive rows */
+        .inactive-row button {
+            cursor: not-allowed;
+        }
+        .status-toggle {
+            cursor: pointer;
+        }
+
+        .status-toggle input {
+            display: none;
+        }
+
+        .status-toggle .toggle {
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .status-toggle .toggle::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .status-toggle input:checked + .toggle::before {
+            transform: translateX(20px) translateY(-50%);
+        }
+
+        .status-toggle input[disabled] + .toggle::before {
+            background-color: #ccc;
+            transform: translateX(0) translateY(-50%);
+        }
+
+        .status-toggle .toggle::after {
+            content: 'ON';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            color: #000;
+        }
+
+        .status-toggle input:checked + .toggle::after {
+            content: 'OFF';
+            color: #fff;
+        }
+
+        /* Disable hover on entire row except for status column */
+        tbody tr:not(.status-column-hover) {
+            pointer-events: none;
+        }
+
+        tbody tr:not(.status-column-hover):hover {
+            background-color: inherit;
+        }
+
+        /* Change cursor to "not-allowed" for inactive rows */
+        tr.inactive-row:not(.status-column-hover) {
+            cursor: not-allowed;
+        }
+
+        /* Overlay styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+            z-index: 9999; /* Ensure it's above other content */
+            display: none; /* Initially hidden */
+        }
+
+        .overlay-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- sidemenu -->
+    <div class="flex h-screen bg-gray-200">
+        <div class="flex-none w-64 p-6 bg-white border-r">
+            <h1 class="text-xl font-semibold mb-4">Coffee Shop</h1>
+            <ul class="space-y-2">
+                <li><a href="#dashboard" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Dashboard</a></li>
+                <li><a href="#inventory" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Inventory</a></li>
+                <li><a href="#menu" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Menu</a></li>
+                <li><a href="#orders" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Orders</a></li>
+                <li><a href="#customers" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Customers</a></li>
+                <li><a href="#analytics" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Analytics & Reports</a></li>
+                <li><a href="#product-management" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Product Management</a></li>
+                <li><a href="#supply-management" class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Supply Management</a></li>
+            </ul>
+            <div class="mt-auto">
+                <button class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Settings</button>
+                <button class="block text-gray-700 hover:bg-gray-300 rounded px-3 py-2">Logout</button>
+            </div>
+        </div>
+        
+        <div class="flex-grow p-6">
+            <!-- main page  -->
+            <div id="supply-management" class="mb-4">
+                <h2 class="text-2xl font-semibold mb-2">Supply Management</h2>
+                <p class="text-gray-700 mb-4">This section shows a list of all supplies and ingredients.</p>
+                
+                <!-- supplies and ingredients segments -->
+                <div class="flex relative mb-4">
+                    <button id="show-supplies" class="segment bg-gray-300 rounded-tl rounded-bl">Supplies</button>
+                    <button id="show-ingredients" class="segment bg-gray-300 rounded-tr rounded-br">Ingredients</button>
+                    <div class="divider"></div>
+                </div>
+                
+                <!-- Table for Supplies -->
+                <div id="supplies-table">
+                    <div class="flex justify-between items-center mb-4">
+                        <!-- Heading -->
+                        <h3 class="text-lg font-semibold">Supplies Table</h3>
+                        <!-- Add Supply button -->
+                        <button id="add-supply" class="block text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-2">Add Supply</button>
+                    </div>
+                    <table class="table-auto w-full">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>ID</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Supply Name</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Unit of Measurement</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Category</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Cost</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300">Supplier Contact No.</th>
+                                <th class="px-4 py-2 bg-gray-300">Modify</th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Status</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sample row, replace with dynamic data from backend -->
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">1</td>
+                                <td class="border px-4 py-2">Coffee Beans</td>
+                                <td class="border px-4 py-2">100 kg</td>
+                                <td class="border px-4 py-2">Coffee</td>
+                                <td class="border px-4 py-2">$100</td>
+                                <td class="border px-4 py-2">123-456-7890</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <!-- Additional rows -->
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">2</td>
+                                <td class="border px-4 py-2">Sugar</td>
+                                <td class="border px-4 py-2">50 kg</td>
+                                <td class="border px-4 py-2">Sweeteners</td>
+                                <td class="border px-4 py-2">$50</td>
+                                <td class="border px-4 py-2">987-654-3210</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">3</td>
+                                <td class="border px-4 py-2">Cups</td>
+                                <td class="border px-4 py-2">2000 units</td>
+                                <td class="border px-4 py-2">Containers</td>
+                                <td class="border px-4 py-2">$30</td>
+                                <td class="border px-4 py-2">456-789-0123</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table for Ingredients (Initially Hidden) -->
+                <div id="ingredients-table" style="display: none;">
+                    <div class="flex justify-between items-center mb-4">
+                        <!-- Heading -->
+                        <h3 class="text-lg font-semibold">Ingredients Table</h3>
+                        <!-- Add Ingredients button -->
+                        <button class="block text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-2">Add Ingredients</button>
+                    </div>
+                    <table class="table-auto w-full">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>ID</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Supply Name</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Unit of Measurement</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Category</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Cost</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                                <th class="px-4 py-2 bg-gray-300">Supplier Contact No.</th>
+                                <th class="px-4 py-2 bg-gray-300">Modify</th>
+                                <th class="px-4 py-2 bg-gray-300"><div  style="display: flex; align-items: center; justify-content: space-between;"><h5>Status</h5><img src="file:///C:/Users/SeanPao/Desktop/Assignments/Software%20Development%20and%20Testing/sort-solid.svg" class="sort-icon" alt="Sort Icon" style="width: 0.8em; height: 0.8em;"></div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sample row, replace with dynamic data from backend -->
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">1</td>
+                                <td class="border px-4 py-2">Milk</td>
+                                <td class="border px-4 py-2">10 liters</td>
+                                <td class="border px-4 py-2">Dairy</td>
+                                <td class="border px-4 py-2">$20</td>
+                                <td class="border px-4 py-2">123-456-7890</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <!-- Additional rows -->
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">2</td>
+                                <td class="border px-4 py-2">Chocolate</td>
+                                <td class="border px-4 py-2">30 bars</td>
+                                <td class="border px-4 py-2">Confectionery</td>
+                                <td class="border px-4 py-2">$25</td>
+                                <td class="border px-4 py-2">321-654-9870</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr class="status-column-hover">
+                                <td class="border px-4 py-2">3</td>
+                                <td class="border px-4 py-2">Vanilla Extract</td>
+                                <td class="border px-4 py-2">5 bottles</td>
+                                <td class="border px-4 py-2">Flavorings</td>
+                                <td class="border px-4 py-2">$10</td>
+                                <td class="border px-4 py-2">789-012-3456</td>
+                                <td class="border px-4 py-2">
+                                    <button class="text-blue-600">View</button>
+                                    <button class="text-green-600 ml-2">Edit</button>
+                                    <button class="text-red-600 ml-2">Delete</button>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <label class="status-toggle">
+                                        <input type="checkbox">
+                                        <span class="toggle"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Overlay for Adding Supplies -->
+                <div id="add-supply-overlay" class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
+                    <div class="bg-white p-8 rounded shadow-lg">
+                        <!-- Form for adding supplies -->
+                        <h3 class="text-lg font-semibold mb-4">Add Supply</h3>
+                        <form>
+                            <div class="mb-4">
+                                <label for="supply-name" class="block text-sm font-medium text-gray-700">Supply Name</label>
+                                <input type="text" id="supply-name" name="supply-name" class="mt-1 p-2 border border-gray-300 rounded w-full">
+                            </div>
+                            <!-- Add more form fields as needed -->
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+                                <button id="close-add-supply-overlay" class="bg-gray-300 hover:bg-gray-400 text-gray-700 ml-2 px-4 py-2 rounded">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // toggle between displaying Supplies and Ingredients tables
+        const suppliesTable = document.getElementById('supplies-table');
+        const ingredientsTable = document.getElementById('ingredients-table');
+        const showSuppliesBtn = document.getElementById('show-supplies');
+        const showIngredientsBtn = document.getElementById('show-ingredients');
+
+        showSuppliesBtn.addEventListener('click', () => {
+            suppliesTable.style.display = 'block';
+            ingredientsTable.style.display = 'none';
+            showSuppliesBtn.classList.add('active');
+            showIngredientsBtn.classList.remove('active');
+        });
+
+        showIngredientsBtn.addEventListener('click', () => {
+            suppliesTable.style.display = 'none';
+            ingredientsTable.style.display = 'block';
+            showIngredientsBtn.classList.add('active');
+            showSuppliesBtn.classList.remove('active');
+        });
+
+        // toggle row status
+        const statusToggles = document.querySelectorAll('.status-toggle input[type="checkbox"]');
+        statusToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (this.checked) {
+                    row.classList.add('inactive-row');
+                    row.querySelectorAll('button').forEach(button => button.disabled = true);
+                } else {
+                    row.classList.remove('inactive-row');
+                    row.querySelectorAll('button').forEach(button => button.disabled = false);
+                }
+            });
+        });
+    </script>
+
+<script>
+    function sortTableByColumn(table, column, asc) {
+        const dirModifier = asc ? 1 : -1;
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        const sortedRows = rows.sort((a, b) => {
+            const aVal = a.cells[column].textContent.trim().toLowerCase();
+            const bVal = b.cells[column].textContent.trim().toLowerCase();
+            return aVal > bVal ? dirModifier : -dirModifier;
+        });
+
+        tbody.innerHTML = ''; // Clear existing rows
+        tbody.append(...sortedRows); // Append sorted rows
+    }
+
+    function toggleSortDirection(sortIcon, table, column) {
+        let asc = true;
+        sortIcon.addEventListener('click', () => {
+            asc = !asc;
+            sortTableByColumn(table, column, asc);
+            sortIcon.classList.toggle('asc', asc);
+        });
+    }
+
+    toggleSortDirection(document.querySelector('#supplies-table .sort-icon'), suppliesTable, 0);
+    toggleSortDirection(document.querySelector('#ingredients-table .sort-icon'), ingredientsTable, 0);
+    toggleSortDirection(document.querySelector('#supplies-table th:nth-child(2) .sort-icon'), suppliesTable, 1);
+    toggleSortDirection(document.querySelector('#ingredients-table th:nth-child(2) .sort-icon'), ingredientsTable, 1);
+    toggleSortDirection(document.querySelector('#supplies-table th:nth-child(4) .sort-icon'), suppliesTable, 3);
+    toggleSortDirection(document.querySelector('#ingredients-table th:nth-child(4) .sort-icon'), ingredientsTable, 3);
+    toggleSortDirection(document.querySelector('#supplies-table th:nth-child(5) .sort-icon'), suppliesTable, 4);
+    toggleSortDirection(document.querySelector('#ingredients-table th:nth-child(5) .sort-icon'), ingredientsTable, 4);
+</script>
+
+<script>
+    // Function to toggle the visibility of the add supply overlay
+    function toggleAddSupplyOverlay() {
+        const overlay = document.getElementById('add-supply-overlay');
+        overlay.classList.toggle('hidden');
+    }
+
+    // Event listener for the Add Supply button
+    const addSupplyBtn = document.getElementById('add-supply');
+    addSupplyBtn.addEventListener('click', toggleAddSupplyOverlay);
+
+    // Event listener for the Close button in the overlay
+    const closeAddSupplyOverlayBtn = document.getElementById('close-add-supply-overlay');
+    closeAddSupplyOverlayBtn.addEventListener('click', toggleAddSupplyOverlay);
+</script>
+</body>
+
+</html>
