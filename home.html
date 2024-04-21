@@ -7,16 +7,16 @@
     <title>Coffee Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        /* Custom CSS for the segments and divider */
+       
         .segment {
             cursor: pointer;
             padding: 8px 12px;
-            border-bottom: 2px solid transparent; /* Initially no underline */
+            border-bottom: 2px solid transparent; 
         }
 
         .segment.active {
-            border-bottom-color: #4a90e2; /* Thick underline for active segment */
-            background-color: #e6f0ff; /* Highlight active segment */
+            border-bottom-color: #4a90e2; 
+            background-color: #e6f0ff; 
         }
 
         .divider {
@@ -33,7 +33,7 @@
             cursor: not-allowed; /* Add this line */
         }
 
-        /* Change cursor to "not-allowed" for buttons in inactive rows */
+       
         .inactive-row button {
             cursor: not-allowed;
         }
@@ -90,7 +90,6 @@
             color: #fff;
         }
 
-        /* Disable hover on entire row except for status column */
         tbody tr:not(.status-column-hover) {
             pointer-events: none;
         }
@@ -99,21 +98,19 @@
             background-color: inherit;
         }
 
-        /* Change cursor to "not-allowed" for inactive rows */
         tr.inactive-row:not(.status-column-hover) {
             cursor: not-allowed;
         }
 
-        /* Overlay styles */
         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
-            z-index: 9999; /* Ensure it's above other content */
-            display: none; /* Initially hidden */
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: none; 
         }
 
         .overlay-content {
@@ -164,12 +161,10 @@
                     <div class="divider"></div>
                 </div>
                 
-                <!-- Table for Supplies -->
+                <!-- table for Supplies -->
                 <div id="supplies-table">
                     <div class="flex justify-between items-center mb-4">
-                        <!-- Heading -->
                         <h3 class="text-lg font-semibold">Supplies Table</h3>
-                        <!-- Add Supply button -->
                         <button id="add-supply" class="block text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-2">Add Supply</button>
                     </div>
                     <table class="table-auto w-full">
@@ -186,7 +181,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Sample row, replace with dynamic data from backend -->
+                            <!-- sample row -->
                             <tr class="status-column-hover">
                                 <td class="border px-4 py-2">1</td>
                                 <td class="border px-4 py-2">Coffee Beans</td>
@@ -206,7 +201,6 @@
                                     </label>
                                 </td>
                             </tr>
-                            <!-- Additional rows -->
                             <tr class="status-column-hover">
                                 <td class="border px-4 py-2">2</td>
                                 <td class="border px-4 py-2">Sugar</td>
@@ -249,12 +243,10 @@
                     </table>
                 </div>
 
-                <!-- Table for Ingredients (Initially Hidden) -->
+                <!-- table for Ingredients -->
                 <div id="ingredients-table" style="display: none;">
                     <div class="flex justify-between items-center mb-4">
-                        <!-- Heading -->
                         <h3 class="text-lg font-semibold">Ingredients Table</h3>
-                        <!-- Add Ingredients button -->
                         <button class="block text-white bg-blue-500 hover:bg-blue-600 rounded px-3 py-2">Add Ingredients</button>
                     </div>
                     <table class="table-auto w-full">
@@ -271,7 +263,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Sample row, replace with dynamic data from backend -->
+                            <!-- sample row,-->
                             <tr class="status-column-hover">
                                 <td class="border px-4 py-2">1</td>
                                 <td class="border px-4 py-2">Milk</td>
@@ -291,7 +283,6 @@
                                     </label>
                                 </td>
                             </tr>
-                            <!-- Additional rows -->
                             <tr class="status-column-hover">
                                 <td class="border px-4 py-2">2</td>
                                 <td class="border px-4 py-2">Chocolate</td>
@@ -333,17 +324,15 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Overlay for Adding Supplies -->
+                <!-- add supplies overlay -->
                 <div id="add-supply-overlay" class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
                     <div class="bg-white p-8 rounded shadow-lg">
-                        <!-- Form for adding supplies -->
                         <h3 class="text-lg font-semibold mb-4">Add Supply</h3>
                         <form>
                             <div class="mb-4">
                                 <label for="supply-name" class="block text-sm font-medium text-gray-700">Supply Name</label>
                                 <input type="text" id="supply-name" name="supply-name" class="mt-1 p-2 border border-gray-300 rounded w-full">
                             </div>
-                            <!-- Add more form fields as needed -->
                             <div class="flex justify-end">
                                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
                                 <button id="close-add-supply-overlay" class="bg-gray-300 hover:bg-gray-400 text-gray-700 ml-2 px-4 py-2 rounded">Cancel</button>
@@ -356,7 +345,7 @@
     </div>
 
     <script>
-        // toggle between displaying Supplies and Ingredients tables
+        // toggle supplies and ingredients tables
         const suppliesTable = document.getElementById('supplies-table');
         const ingredientsTable = document.getElementById('ingredients-table');
         const showSuppliesBtn = document.getElementById('show-supplies');
@@ -404,8 +393,8 @@
             return aVal > bVal ? dirModifier : -dirModifier;
         });
 
-        tbody.innerHTML = ''; // Clear existing rows
-        tbody.append(...sortedRows); // Append sorted rows
+        tbody.innerHTML = ''; 
+        tbody.append(...sortedRows); 
     }
 
     function toggleSortDirection(sortIcon, table, column) {
@@ -428,17 +417,14 @@
 </script>
 
 <script>
-    // Function to toggle the visibility of the add supply overlay
     function toggleAddSupplyOverlay() {
         const overlay = document.getElementById('add-supply-overlay');
         overlay.classList.toggle('hidden');
     }
 
-    // Event listener for the Add Supply button
     const addSupplyBtn = document.getElementById('add-supply');
     addSupplyBtn.addEventListener('click', toggleAddSupplyOverlay);
 
-    // Event listener for the Close button in the overlay
     const closeAddSupplyOverlayBtn = document.getElementById('close-add-supply-overlay');
     closeAddSupplyOverlayBtn.addEventListener('click', toggleAddSupplyOverlay);
 </script>
